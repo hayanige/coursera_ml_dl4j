@@ -52,9 +52,6 @@ public class LinearRegression {
     INDArray X = Nd4j.hstack(ones, x);
     INDArray theta = Nd4j.create(new double[]{0, 0}, new int[]{2, 1});
 
-    int iterations = 1500;
-    float alpha = 0.01f;
-
     double J = computeCost(X, y, theta);
     System.out.println("With theta = [0, 0]");
     System.out.println("Cost computed = " + J);
@@ -67,6 +64,8 @@ public class LinearRegression {
     System.out.println();
 
     System.out.println("Running Gradient Descent ...");
+    int iterations = 1500;
+    float alpha = 0.01f;
     theta = gradientDescent(X, y, theta, alpha, iterations);
     System.out.println("Theta found by gradient descent: " + theta);
     System.out.println("Expected theta values (approx): [-3.6303, 1.1664]");
