@@ -72,7 +72,25 @@ public class LogisticRegression {
 
     int numIter = 10000;
     double alpha = 0.001;
-    System.out.println(gradientDescent(initialTheta, X, y, alpha, numIter));
+    INDArray learnedTheta = gradientDescent(initialTheta, X, y, alpha, numIter);
+    System.out.println(learnedTheta);
+
+    INDArray testStudent = Nd4j
+        .create(new double[]{1, 45, 85}, new int[]{1, 3});
+    double predictedScore = Transforms.sigmoid(testStudent.mmul(learnedTheta))
+        .getDouble(0);
+    System.out.println("For a student with scores 45 and 85, we predict an"
+        + "admission probability of " + predictedScore);
+
+    INDArray predictedValues = Transforms.sigmoid(X.mmul(learnedTheta));
+    int sum = 0;
+    for (int i = 0; i < predictedValues.length(); i++) {
+      if (predictedValues.getDouble(i) >= 0.5 && y.getDouble(i) == 1.0
+          || predictedValues.getDouble(i) < 0.5 && y.getDouble(i) == 0.0) {
+        sum++;
+      }
+    }
+    System.out.println("Train Accuracy: " + (100.0 * sum) / y.length());
   }
 
   static double computeCost(INDArray theta, INDArray X, INDArray y) {
