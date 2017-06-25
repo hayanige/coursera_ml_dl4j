@@ -47,24 +47,28 @@ public class LogisticRegression {
     INDArray y = dsArray.getColumn(2);
     int m = y.length();
     INDArray ones = Nd4j.ones(m, 1);
-    INDArray X = Nd4j.hstack(ones, mapFeature(dsArray.getColumn(0),
-        dsArray.getColumn(1), 6));
-    INDArray theta = Nd4j.zeros(X.columns(), 1);
+    INDArray X = Nd4j.hstack(ones, dsArray.getColumn(0), dsArray.getColumn(1));
+    INDArray initialTheta = Nd4j.zeros(X.columns(), 1);
 
+    // Compute and display initial cost and gradient
     System.out.println("Cost at initial theta (zeros): "
-        + computeCost(theta, X, y));
+        + computeCost(initialTheta, X, y));
     System.out.println("Expected cost (approx): 0.693");
-  }
+    System.out.println("Gradient at initial theta (zeros): "
+        + computeGrad(initialTheta, X, y));
+    System.out.println("Expected gradients (approx): "
+        + "\n -0.1000\n -12.0092\n -11.2628");
 
-  static INDArray mapFeature(INDArray x1, INDArray x2, int degree) {
-    INDArray out = Nd4j.ones(x1.length(), 1);
-    for (int i = 1; i <= degree; i++) {
-      for (int j = 0; j <= i; j++) {
-        out = Nd4j.hstack(out, Transforms.pow(x1, i - j)
-            .mul(Transforms.pow(x2, j)));
-      }
-    }
-    return out;
+    // Compute and display cost and gradient with non-zero theta
+    INDArray testTheta = Nd4j
+        .create(new double[]{-24, 0.2, 0.2}, new int[]{3, 1});
+    System.out.println("Cost at test theta: "
+        + computeCost(testTheta, X, y));
+    System.out.println("Expected cost (approx): 0.218");
+    System.out.println("Gradient at test theta: "
+        + computeGrad(testTheta, X, y));
+    System.out.println("Expected gradients (approx): "
+        + "\n 0.043\n 2.566\n 2.647");
   }
 
   static double computeCost(INDArray theta, INDArray X, INDArray y) {
@@ -77,4 +81,15 @@ public class LogisticRegression {
     return child / m;
   }
 
+  static INDArray computeGrad(INDArray theta, INDArray X, INDArray y) {
+    int m = y.length();
+    INDArray grad = Nd4j.zeros(theta.length(), 1);
+    double deriv;
+    for (int j = 0; j < theta.length(); j++) {
+      deriv = Transforms.sigmoid(X.mmul(theta)).sub(y).mul(X.getColumn(j))
+          .sumNumber().doubleValue() / m;
+      grad.putScalar(j, 0, deriv);
+    }
+    return grad;
+  }
 }
