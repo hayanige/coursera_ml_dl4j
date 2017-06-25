@@ -69,16 +69,25 @@ public class LogisticRegression {
         + computeGrad(testTheta, X, y));
     System.out.println("Expected gradients (approx): "
         + "\n 0.043\n 2.566\n 2.647");
+
+    int numIter = 10000;
+    double alpha = 0.001;
+    System.out.println(gradientDescent(initialTheta, X, y, alpha, numIter));
   }
 
   static double computeCost(INDArray theta, INDArray X, INDArray y) {
     int m = y.length();
-    double child = y.mul(-1)
-        .mul(Transforms.log(Transforms.sigmoid(X.mmul(theta))))
-        .sub(y.mul(-1).add(1).mul(
-            Transforms.log(Transforms.sigmoid(X.mmul(theta)).mul(-1).add(1))))
-        .sumNumber().doubleValue();
-    return child / m;
+    INDArray member1 = Transforms.log(Transforms.sigmoid(X.mmul(theta)));
+    INDArray member2 = Transforms.log(Transforms.sigmoid(X.mmul(theta))
+        .mul(-1).add(1));
+    for (int i = 0; i < m; i++) {
+      if (y.getDouble(i) == 0.0) {
+        member1.putScalar(i, 0, 0.0);
+      } else {
+        member2.putScalar(i, 0, 0.0);
+      }
+    }
+    return member1.mul(-1).sub(member2).sumNumber().doubleValue() / m;
   }
 
   static INDArray computeGrad(INDArray theta, INDArray X, INDArray y) {
@@ -91,5 +100,20 @@ public class LogisticRegression {
       grad.putScalar(j, 0, deriv);
     }
     return grad;
+  }
+
+  static INDArray gradientDescent(INDArray initialTheta, INDArray X, INDArray y,
+      double alpha, int numIters) {
+    INDArray theta = initialTheta.dup();
+    INDArray grad;
+    for (int i = 0; i < numIters; i++) {
+      System.out.println("number of iter: " + i + ", cost: "
+          + computeCost(theta, X, y));
+      grad = computeGrad(theta, X, y);
+
+      // this can update thetas simultaneously
+      theta = theta.sub(grad.mul(alpha));
+    }
+    return theta;
   }
 }
